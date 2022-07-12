@@ -1,20 +1,27 @@
-/***************************************************
-  This is an example sketch for our optical Fingerprint sensor
+#include "SIM900.h"
+#include <SoftwareSerial.h>
+//If not used, is better to exclude the HTTP library,
+//for RAM saving.
+//If your sketch reboots itself proprably you have finished,
+//your memory available.
+//#include "inetGSM.h"
 
-  Designed specifically to work with the Adafruit BMP085 Breakout
-  ----> http://www.adafruit.com/products/751
+//If you want to use the Arduino functions to manage SMS, uncomment the lines below.
+#include "sms.h"
+SMSGSM sms;
 
-  These displays use TTL Serial to communicate, 2 pins are required to
-  interface
-  Adafruit invests time and resources providing this open source code,
-  please support Adafruit and open-source hardware by purchasing
-  products from Adafruit!
+//To change pins for Software Serial, use the two lines in GSM.cpp.
 
-  Written by Limor Fried/Ladyada for Adafruit Industries.
-  BSD license, all text above must be included in any redistribution
- ****************************************************/
+//GSM Shield for Arduino
+//www.open-electronics.org
+//this code is based on the example of Arduino Labs.
 
+//Simple sketch to send and receive SMS.
 
+int numdata;
+boolean started=false;
+char smsbuffer[160];
+char n[20];
 #include <Adafruit_Fingerprint.h>
 
 
@@ -39,6 +46,21 @@ Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
 
 void setup()
 {
+   //Serial connection.
+  Serial.begin(9600);
+  Serial.println("GSM Shield testing.");
+  //Start configuration of shield with baudrate.
+  //For http uses is raccomanded to use 4800 or slower.
+  if (gsm.begin(2400)){
+    Serial.println("\nstatus=READY");
+    started=true;  
+  }
+  else Serial.println("\nstatus=IDLE");
+  
+  if(started){
+    //Enable this two lines if you want to send an SMS.
+    if (sms.SendSMS("628568131842", "GSM OK"))
+      Serial.println("\nSMS sent OK");
   pinMode(relay, OUTPUT);
   digitalWrite(relay, HIGH);
   Serial.begin(9600);
@@ -145,6 +167,7 @@ uint8_t getFingerprintID() {
 
   // found a match!
   digitalWrite(relay,LOW);
+  sms.SendSMS("628568131842", "Pintu Terbuka");
   Serial.print("Found ID #"); Serial.print(finger.fingerID);
   Serial.print(" with confidence of "); Serial.println(finger.confidence);
 
